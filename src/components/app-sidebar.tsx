@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ArchiveX, Command, File, Inbox, Send, Trash2 } from "lucide-react"
+import { MessageCircleIcon, MessageSquare } from "lucide-react";
+import { usePathname } from "next/navigation";
+import * as React from "react";
 
-import { NavUser } from "@/components/nav-user"
-import { Label } from "@/components/ui/label"
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -16,139 +16,96 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
-import { Switch } from "@/components/ui/switch"
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import Image from "next/image";
+import { Button } from "./ui/button";
 
 // This is sample data
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
-      title: "Inbox",
-      url: "#",
-      icon: Inbox,
-      isActive: true,
-    },
-    {
-      title: "Drafts",
-      url: "#",
-      icon: File,
-      isActive: false,
-    },
-    {
-      title: "Sent",
-      url: "#",
-      icon: Send,
-      isActive: false,
-    },
-    {
-      title: "Junk",
-      url: "#",
-      icon: ArchiveX,
-      isActive: false,
-    },
-    {
-      title: "Trash",
-      url: "#",
-      icon: Trash2,
-      isActive: false,
+      title: "Messages",
+      url: "/",
+      icon: MessageCircleIcon,
     },
   ],
-  mails: [
+  messages: [
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "William Smith",
-      email: "williamsmith@example.com",
-      subject: "Meeting Tomorrow",
-      date: "09:34 AM",
+      date: "30m",
       teaser:
         "Hi team, just a reminder about our meeting tomorrow at 10 AM.\nPlease come prepared with your project updates.",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "Alice Smith",
-      email: "alicesmith@example.com",
-      subject: "Re: Project Update",
-      date: "Yesterday",
+      date: "1d",
       teaser:
         "Thanks for the update. The progress looks great so far.\nLet's schedule a call to discuss the next steps.",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "Bob Johnson",
-      email: "bobjohnson@example.com",
-      subject: "Weekend Plans",
-      date: "2 days ago",
+      date: "2d",
       teaser:
         "Hey everyone! I'm thinking of organizing a team outing this weekend.\nWould you be interested in a hiking trip or a beach day?",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "Emily Davis",
-      email: "emilydavis@example.com",
-      subject: "Re: Question about Budget",
-      date: "2 days ago",
+      date: "2d",
       teaser:
         "I've reviewed the budget numbers you sent over.\nCan we set up a quick call to discuss some potential adjustments?",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "Michael Wilson",
-      email: "michaelwilson@example.com",
-      subject: "Important Announcement",
-      date: "1 week ago",
+      date: "1w",
       teaser:
         "Please join us for an all-hands meeting this Friday at 3 PM.\nWe have some exciting news to share about the company's future.",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "Sarah Brown",
-      email: "sarahbrown@example.com",
-      subject: "Re: Feedback on Proposal",
-      date: "1 week ago",
+      date: "1w",
       teaser:
         "Thank you for sending over the proposal. I've reviewed it and have some thoughts.\nCould we schedule a meeting to discuss my feedback in detail?",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "David Lee",
-      email: "davidlee@example.com",
-      subject: "New Project Idea",
-      date: "1 week ago",
+      date: "1w",
       teaser:
         "I've been brainstorming and came up with an interesting project concept.\nDo you have time this week to discuss its potential impact and feasibility?",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "Olivia Wilson",
-      email: "oliviawilson@example.com",
-      subject: "Vacation Plans",
-      date: "1 week ago",
+      date: "1w",
       teaser:
         "Just a heads up that I'll be taking a two-week vacation next month.\nI'll make sure all my projects are up to date before I leave.",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "James Martin",
-      email: "jamesmartin@example.com",
-      subject: "Re: Conference Registration",
-      date: "1 week ago",
+      date: "1w",
       teaser:
         "I've completed the registration for the upcoming tech conference.\nLet me know if you need any additional information from my end.",
     },
     {
+      avatar: "/avatars/shadcn.jpg",
       name: "Sophia White",
-      email: "sophiawhite@example.com",
-      subject: "Team Dinner",
-      date: "1 week ago",
+      date: "1w",
       teaser:
         "To celebrate our recent project success, I'd like to organize a team dinner.\nAre you available next Friday evening? Please let me know your preferences.",
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // Note: I'm using state to show active item.
-  // IRL you should use the url/router.
-  const [activeItem, setActiveItem] = React.useState(data.navMain[0])
-  const [mails, setMails] = React.useState(data.mails)
-  const { setOpen } = useSidebar()
+  const pathname = usePathname();
 
   return (
     <Sidebar
@@ -161,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* This will make the sidebar appear as icons. */}
       <Sidebar
         collapsible="none"
-        className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
+        className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r bg-[#F5F5F6]"
       >
         <SidebarHeader>
           <SidebarMenu>
@@ -169,11 +126,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
                 <a href="#">
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Command className="size-4" />
+                    <Image
+                      src="/icons/logo.svg"
+                      alt="Logo"
+                      width={40}
+                      height={40}
+                      className="bg-blue-500 p-2 rounded-md"
+                    />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Acme Inc</span>
-                    <span className="truncate text-xs">Enterprise</span>
+                    <span className="truncate font-semibold">Fluent</span>
+                    <span className="truncate text-xs">Messaging</span>
                   </div>
                 </a>
               </SidebarMenuButton>
@@ -191,19 +154,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         children: item.title,
                         hidden: false,
                       }}
-                      onClick={() => {
-                        setActiveItem(item)
-                        const mail = data.mails.sort(() => Math.random() - 0.5)
-                        setMails(
-                          mail.slice(
-                            0,
-                            Math.max(5, Math.floor(Math.random() * 10) + 1)
-                          )
-                        )
-                        setOpen(true)
-                      }}
-                      isActive={activeItem.title === item.title}
-                      className="px-2.5 md:px-2"
+                      isActive={pathname === item.url}
+                      className={`px-2.5 md:px-2 ${
+                        pathname === item.url ? "bg-white" : ""
+                      }`}
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -215,41 +169,48 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <NavUser user={data.user} />
+          <NavUser />
         </SidebarFooter>
       </Sidebar>
 
       {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill remaining space */}
-      <Sidebar collapsible="none" className="hidden flex-1 md:flex">
+      <Sidebar collapsible="none" className="hidden flex-1 md:flex bg-white">
         <SidebarHeader className="gap-3.5 border-b p-4">
           <div className="flex w-full items-center justify-between">
             <div className="text-base font-medium text-foreground">
-              {activeItem.title}
+              {data.navMain.find((item) => item.url === pathname)?.title ||
+                "Messages"}
             </div>
-            <Label className="flex items-center gap-2 text-sm">
-              <span>Unreads</span>
-              <Switch className="shadow-none" />
-            </Label>
+            <Button variant="outline" size="icon">
+              <MessageSquare />
+            </Button>
           </div>
           <SidebarInput placeholder="Type to search..." />
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup className="px-0">
-            <SidebarGroupContent>
-              {mails.map((mail) => (
+          <SidebarGroup className="px-2">
+            <SidebarGroupContent className="space-y-2">
+              {data.messages.map((message) => (
                 <a
                   href="#"
-                  key={mail.email}
-                  className="flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  key={message.name}
+                  className="flex items-start p-3 rounded-lg gap-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 >
-                  <div className="flex w-full items-center gap-2">
-                    <span>{mail.name}</span>{" "}
-                    <span className="ml-auto text-xs">{mail.date}</span>
+                  <div className="flex gap-2">
+                    <Avatar className="w-8 h-8 min-w-8 min-h-8 flex items-center justify-center bg-zinc-200 rounded-lg">
+                      <AvatarImage src={message.avatar} alt={message.name} />
+                      <AvatarFallback>{message.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col gap-1">
+                      <span>{message.name}</span>
+                      <span className="line-clamp-2 text-xs max-w-[200px] text-muted-foreground">
+                        {message.teaser}
+                      </span>
+                    </div>
                   </div>
-                  <span className="font-medium">{mail.subject}</span>
-                  <span className="line-clamp-2 w-[260px] whitespace-break-spaces text-xs">
-                    {mail.teaser}
+                  <span className="text-xs text-muted-foreground">
+                    {message.date}
                   </span>
                 </a>
               ))}
@@ -258,5 +219,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarContent>
       </Sidebar>
     </Sidebar>
-  )
+  );
 }
