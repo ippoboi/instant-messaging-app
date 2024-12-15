@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { Message } from "@/components/message";
 
 export default async function Home() {
   const session = await auth();
@@ -44,7 +45,28 @@ export default async function Home() {
             </div>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 bg-[#f5f5f5]">test</div>
+        <div className="flex w-full flex-1 flex-col gap-4 p-4 bg-[#f5f5f5]">
+          <Message
+            content="This is a message"
+            timestamp="1h"
+            sender={{
+              id: "1",
+              name: "Dimitar Dimitrov",
+              image: "",
+            }}
+            isCurrentUser={false}
+          />
+          <Message
+            content="This is a message"
+            timestamp="1h"
+            sender={{
+              id: "1",
+              name: "Dimitar Dimitrov",
+              image: "",
+            }}
+            isCurrentUser={true}
+          />
+        </div>
         <footer className="sticky bottom-0 flex shrink-0 items-center gap-2 border-t bg-background p-4">
           <input className="flex-1" placeholder="Type a message..." />
           <Button>

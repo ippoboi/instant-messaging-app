@@ -2,7 +2,9 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { Pool } from "@neondatabase/serverless";
 import NextAuth from "next-auth";
-import github from "next-auth/providers/github";
+import GitHub from "next-auth/providers/github";
+import Resend from "next-auth/providers/resend";
+import Google from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 
 const neon = new Pool({
@@ -13,7 +15,7 @@ const prisma = new PrismaClient({ adapter });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  providers: [github],
+  providers: [GitHub, Resend, Google],
   pages: {
     signIn: "/signin",
   },

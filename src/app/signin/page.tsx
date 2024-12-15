@@ -18,7 +18,17 @@ export default function SignIn() {
           <h1 className="text-lg font-medium max-w-56 text-center">
             Instant messages for instant vibes.
           </h1>
-          <SignInButton />
+          <div className="flex items-center justify-center gap-2 w-full">
+            <SignInButton provider="github" />
+            <SignInButton provider="google" />
+          </div>
+          <div className="text-sm text-muted-foreground flex items-center w-full gap-2">
+            <div className="h-[1px] w-full bg-zinc-200" />
+            or
+            <div className="h-[1px] w-full bg-zinc-200" />
+          </div>
+
+          <SignInButton provider="resend" />
         </div>
       </div>
     </div>
