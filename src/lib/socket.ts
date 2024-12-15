@@ -1,24 +1,14 @@
 import { Server as NetServer } from "http";
-import { Server as ServerIO } from "socket.io";
+import { Server as SocketIOServer } from "socket.io";
 import { NextApiResponse } from "next";
 
 export type NextApiResponseServerIO = NextApiResponse & {
-  socket: any & {
-    server: NetServer & {
-      io: ServerIO;
-    };
-  };
+  socket: any;
 };
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export function initSocket(res: NextApiResponseServerIO) {
-  if (!res.socket.server.io) {
-    const io = new ServerIO(res.socket.server, {
+export function initSocket(server: NetServer) {
+  if (!(server as any).io) {
+    const io = new SocketIOServer(server, {
       path: "/api/socket",
       addTrailingSlash: false,
       cors: {
@@ -46,7 +36,7 @@ export function initSocket(res: NextApiResponseServerIO) {
       });
     });
 
-    res.socket.server.io = io;
+    (server as any).io = io;
   }
-  return res.socket.server.io;
+  return (server as any).io;
 }

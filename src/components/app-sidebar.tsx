@@ -3,6 +3,9 @@
 import { MessageCircleIcon, MessageSquare } from "lucide-react";
 import { usePathname } from "next/navigation";
 import * as React from "react";
+import { useEffect, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 import { NavUser } from "@/components/nav-user";
 import {
@@ -12,7 +15,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
-  SidebarInput,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -20,102 +22,53 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import Image from "next/image";
 import { Button } from "./ui/button";
+import { UserSearch } from "@/components/user-search";
+import { cn } from "@/lib/utils";
 
-// This is sample data
-const data = {
-  navMain: [
-    {
-      title: "Messages",
-      url: "/",
-      icon: MessageCircleIcon,
-    },
-  ],
-  messages: [
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "William Smith",
-      date: "30m",
-      teaser:
-        "Hi team, just a reminder about our meeting tomorrow at 10 AM.\nPlease come prepared with your project updates.",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "Alice Smith",
-      date: "1d",
-      teaser:
-        "Thanks for the update. The progress looks great so far.\nLet's schedule a call to discuss the next steps.",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "Bob Johnson",
-      date: "2d",
-      teaser:
-        "Hey everyone! I'm thinking of organizing a team outing this weekend.\nWould you be interested in a hiking trip or a beach day?",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "Emily Davis",
-      date: "2d",
-      teaser:
-        "I've reviewed the budget numbers you sent over.\nCan we set up a quick call to discuss some potential adjustments?",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "Michael Wilson",
-      date: "1w",
-      teaser:
-        "Please join us for an all-hands meeting this Friday at 3 PM.\nWe have some exciting news to share about the company's future.",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "Sarah Brown",
-      date: "1w",
-      teaser:
-        "Thank you for sending over the proposal. I've reviewed it and have some thoughts.\nCould we schedule a meeting to discuss my feedback in detail?",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "David Lee",
-      date: "1w",
-      teaser:
-        "I've been brainstorming and came up with an interesting project concept.\nDo you have time this week to discuss its potential impact and feasibility?",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "Olivia Wilson",
-      date: "1w",
-      teaser:
-        "Just a heads up that I'll be taking a two-week vacation next month.\nI'll make sure all my projects are up to date before I leave.",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "James Martin",
-      date: "1w",
-      teaser:
-        "I've completed the registration for the upcoming tech conference.\nLet me know if you need any additional information from my end.",
-    },
-    {
-      avatar: "/avatars/shadcn.jpg",
-      name: "Sophia White",
-      date: "1w",
-      teaser:
-        "To celebrate our recent project success, I'd like to organize a team dinner.\nAre you available next Friday evening? Please let me know your preferences.",
-    },
-  ],
-};
+interface Conversation {
+  id: string;
+  lastMessageAt: Date;
+  participants: Array<{
+    id: string;
+    name: string;
+    image: string | null;
+  }>;
+  messages: Array<{
+    content: string;
+    createdAt: Date;
+  }>;
+}
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps {
+  activeConversationId?: string;
+}
+
+export function AppSidebar({ activeConversationId }: AppSidebarProps) {
   const pathname = usePathname();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const response = await fetch("/api/conversations");
+        if (!response.ok) throw new Error("Failed to load conversations");
+        const data = await response.json();
+        setConversations(data);
+      } catch (error) {
+        console.error("Failed to load conversations:", error);
+      }
+    };
+
+    loadConversations();
+  }, []);
 
   return (
     <Sidebar
       collapsible="icon"
       className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row"
-      {...props}
+      data-active-conversation={activeConversationId}
     >
-      {/* This is the first sidebar */}
-      {/* We disable collapsible and adjust width to icon. */}
-      {/* This will make the sidebar appear as icons. */}
+      {/* First sidebar */}
       <Sidebar
         collapsible="none"
         className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r bg-[#F5F5F6]"
@@ -147,23 +100,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
-                {data.navMain.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      tooltip={{
-                        children: item.title,
-                        hidden: false,
-                      }}
-                      isActive={pathname === item.url}
-                      className={`px-2.5 md:px-2 ${
-                        pathname === item.url ? "bg-white" : ""
-                      }`}
-                    >
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {[{ title: "Messages", url: "/", icon: MessageCircleIcon }].map(
+                  (item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        tooltip={{
+                          children: item.title,
+                          hidden: false,
+                        }}
+                        isActive={pathname === item.url}
+                        className={`px-2.5 md:px-2 ${
+                          pathname === item.url ? "bg-white" : ""
+                        }`}
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -173,47 +128,65 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarFooter>
       </Sidebar>
 
-      {/* This is the second sidebar */}
-      {/* We disable collapsible and let it fill remaining space */}
+      {/* Second sidebar */}
       <Sidebar collapsible="none" className="hidden flex-1 md:flex bg-white">
         <SidebarHeader className="gap-3.5 border-b p-4">
           <div className="flex w-full items-center justify-between">
             <div className="text-base font-medium text-foreground">
-              {data.navMain.find((item) => item.url === pathname)?.title ||
-                "Messages"}
+              Messages
             </div>
             <Button variant="outline" size="icon">
               <MessageSquare />
             </Button>
           </div>
-          <SidebarInput placeholder="Type to search..." />
+          <UserSearch />
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup className="px-2">
             <SidebarGroupContent className="space-y-2">
-              {data.messages.map((message) => (
-                <a
-                  href="#"
-                  key={message.name}
-                  className="flex items-start p-3 rounded-lg gap-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                >
-                  <div className="flex gap-2">
-                    <Avatar className="w-8 h-8 min-w-8 min-h-8 flex items-center justify-center bg-zinc-200 rounded-lg">
-                      <AvatarImage src={message.avatar} alt={message.name} />
-                      <AvatarFallback>{message.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col gap-1">
-                      <span>{message.name}</span>
-                      <span className="line-clamp-2 text-xs max-w-[200px] text-muted-foreground">
-                        {message.teaser}
-                      </span>
+              {conversations.map((conversation) => {
+                const otherUser = conversation.participants[0];
+                const lastMessage = conversation.messages[0];
+
+                return (
+                  <Link
+                    key={conversation.id}
+                    href={`/?conversation=${conversation.id}`}
+                    className={cn(
+                      "flex items-start p-3 rounded-lg gap-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                      activeConversationId === conversation.id &&
+                        "bg-sidebar-accent"
+                    )}
+                  >
+                    <div className="flex gap-2">
+                      <Avatar className="w-8 h-8 min-w-8 min-h-8 flex items-center justify-center bg-zinc-200 rounded-lg">
+                        <AvatarImage
+                          src={otherUser?.image || ""}
+                          alt={otherUser?.name}
+                        />
+                        <AvatarFallback>
+                          {otherUser?.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col gap-1">
+                        <span>{otherUser?.name}</span>
+                        {lastMessage && (
+                          <span className="line-clamp-2 text-xs max-w-[200px] text-muted-foreground">
+                            {lastMessage.content}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {message.date}
-                  </span>
-                </a>
-              ))}
+                    {lastMessage && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(lastMessage.createdAt), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>

@@ -2,85 +2,89 @@ import { Message } from "@/types/message";
 import { useEffect, useRef, useState } from "react";
 import { Socket, io } from "socket.io-client";
 
-export function useChat(receiverId: string) {
+export function useChat(conversationId: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
   const socketRef = useRef<Socket>();
 
   useEffect(() => {
-    const socket = io({
-      path: "/api/socket",
-      addTrailingSlash: false,
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      console.log("Socket connected");
-      setIsConnected(true);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-      setIsConnected(false);
-    });
-
-    socket.on("new-message", (message: Message) => {
-      if (
-        message.senderId === receiverId ||
-        message.receiverId === receiverId
-      ) {
-        setMessages((prev) => [...prev, message]);
-      }
-    });
-
-    // Load existing messages
     const loadMessages = async () => {
-      if (!conversationId) return;
-
-      const response = await fetch(
-        `/api/messages?conversationId=${conversationId}`
-      );
-      const data = await response.json();
-      setMessages(data);
+      try {
+        const response = await fetch(
+          `/api/messages?conversationId=${conversationId}`
+        );
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setMessages(data);
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      }
     };
 
-    if (conversationId) {
-      loadMessages();
+    loadMessages();
+
+    if (!socketRef.current) {
+      const socket = io({
+        path: "/api/socket",
+        addTrailingSlash: false,
+      });
+      socketRef.current = socket;
+
+      socket.on("connect", () => {
+        console.log("Socket connected");
+        setIsConnected(true);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Socket disconnected");
+        setIsConnected(false);
+      });
+    }
+
+    if (socketRef.current) {
+      socketRef.current.emit("join-chat", conversationId);
+    }
+
+    const handleNewMessage = (message: Message) => {
+      console.log("New message received:", message);
+      if (message.conversationId === conversationId) {
+        setMessages((prev) => [...prev, message]);
+      }
+    };
+
+    if (socketRef.current) {
+      socketRef.current.on("new-message", handleNewMessage);
+      socketRef.current.on("message-sent", handleNewMessage);
     }
 
     return () => {
-      socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.off("new-message", handleNewMessage);
+        socketRef.current.off("message-sent", handleNewMessage);
+        socketRef.current.emit("leave-chat", conversationId);
+      }
     };
-  }, [receiverId, conversationId]);
+  }, [conversationId]);
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, receiverId: string) => {
     if (!socketRef.current) return;
 
     try {
       const response = await fetch("/api/messages", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content,
-          receiverId,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, receiverId, conversationId }),
       });
 
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       const message = await response.json();
       socketRef.current.emit("send-message", message);
-      setConversationId(message.conversationId);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
   };
 
-  return {
-    messages,
-    sendMessage,
-    isConnected,
-  };
+  return { messages, sendMessage, isConnected };
 }

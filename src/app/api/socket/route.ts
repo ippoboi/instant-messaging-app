@@ -1,9 +1,18 @@
-import { initSocket, NextApiResponseServerIO } from "@/lib/socket";
-import { NextRequest } from "next/server";
+import { createServer } from "http";
+import { NextResponse } from "next/server";
+import { initSocket } from "@/lib/socket";
 
-export async function GET(req: NextRequest, res: NextApiResponseServerIO) {
-  initSocket(res);
-  res.status(200).json({ message: "Socket server initialized" });
+const server = createServer();
+const io = initSocket(server);
+
+export async function GET() {
+  if (!io) {
+    return new NextResponse("Socket.io server not initialized", {
+      status: 500,
+    });
+  }
+
+  return new NextResponse("Socket.io server running", { status: 200 });
 }
 
 export const dynamic = "force-dynamic";

@@ -22,7 +22,7 @@ export function Message({
   return (
     <div
       className={cn(
-        "flex gap-4",
+        "flex w-full gap-4",
         isCurrentUser ? "flex-row-reverse" : "flex-row"
       )}
     >
@@ -30,23 +30,20 @@ export function Message({
         <AvatarImage src={sender.image || ""} alt={sender.name} />
         <AvatarFallback>{sender.name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
-      <div className="flex flex-col gap-2">
-        <div
-          className={cn(
-            "flex flex-col gap-2 text-sm",
-            isCurrentUser ? "items-end" : "items-start"
-          )}
-        >
-          <div>
-            {sender.name}{" "}
-            <span className="text-muted-foreground">{timestamp}</span>
-          </div>
+      <div
+        className={cn(
+          "flex flex-col gap-2",
+          isCurrentUser ? "items-end" : "items-start"
+        )}
+      >
+        <div className="text-sm text-muted-foreground">
+          {sender.name} • {timestamp}
         </div>
         <div
           className={cn(
-            "text-sm rounded-lg px-4 py-3 w-fit",
+            "rounded-lg px-4 py-3 max-w-[80%]",
             isCurrentUser
-              ? "bg-blue-500 text-white"
+              ? "bg-blue-500 text-white ml-auto"
               : "bg-[#E6F0FF] text-foreground"
           )}
         >
