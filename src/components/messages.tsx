@@ -1,26 +1,43 @@
 "use client";
 
-import { useChat } from "@/hooks/use-chat";
-import { Message } from "./message";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
+import { Message } from "./message";
 
 interface MessagesProps {
   conversationId: string;
 }
 
+async function getMessagesByConversation(conversationId: string) {
+  const response = await fetch(
+    `/api/messages?conversationId=${conversationId}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch messages");
+  }
+  return response.json();
+}
+
 export function Messages({ conversationId }: MessagesProps) {
   const { data: session } = useSession();
-  const { messages } = useChat(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const {
+    data: messages,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["messages", conversationId],
+    queryFn: () => getMessagesByConversation(conversationId),
+  });
 
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   if (!messages || messages.length === 0) {
     return (
@@ -30,7 +47,7 @@ export function Messages({ conversationId }: MessagesProps) {
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-180px)] overflow-y-auto">
-      {messages.map((message) => (
+      {messages.map((message: any) => (
         <Message
           key={message.id}
           content={message.content}
