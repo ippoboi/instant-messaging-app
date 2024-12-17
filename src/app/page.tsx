@@ -35,13 +35,13 @@ export default async function Home({ searchParams }: HomeProps) {
       where: {
         id: params.conversation,
         participants: {
-          some: { id: session.user.id },
+          some: { id: session?.user?.id },
         },
       },
       include: {
         participants: {
           where: {
-            NOT: { id: session.user.id },
+            NOT: { id: session?.user?.id },
           },
         },
       },
@@ -62,7 +62,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <SidebarInset>
         {activeConversation ? (
           <>
-            <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-background p-4">
+            <header className="sticky z-10 top-0 flex shrink-0 items-center gap-2 border-b bg-background p-4">
               <Breadcrumb className="flex items-center gap-4">
                 <Avatar className="rounded-md flex items-center justify-center bg-muted">
                   <AvatarImage
@@ -79,7 +79,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 </div>
               </Breadcrumb>
             </header>
-            <div className="flex w-full flex-1 flex-col gap-4 p-4 bg-[#f5f5f5]">
+            <div className="flex w-full flex-1 flex-col gap-4 p-4 pt-0 bg-[#f5f5f5] overflow-hidden">
               <Messages conversationId={activeConversation.id} />
             </div>
             <ChatInput

@@ -80,6 +80,9 @@ export function useChat(conversationId: string) {
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
       const message = await response.json();
+
+      setMessages((prev) => [...prev, message]);
+
       socketRef.current.emit("send-message", message);
     } catch (error) {
       console.error("Failed to send message:", error);

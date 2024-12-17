@@ -3,6 +3,7 @@
 import { useChat } from "@/hooks/use-chat";
 import { Message } from "./message";
 import { useSession } from "next-auth/react";
+import { useEffect, useRef } from "react";
 
 interface MessagesProps {
   conversationId: string;
@@ -11,6 +12,15 @@ interface MessagesProps {
 export function Messages({ conversationId }: MessagesProps) {
   const { data: session } = useSession();
   const { messages } = useChat(conversationId);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   if (!messages || messages.length === 0) {
     return (
@@ -19,7 +29,7 @@ export function Messages({ conversationId }: MessagesProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 h-[calc(100vh-180px)] overflow-y-auto">
       {messages.map((message) => (
         <Message
           key={message.id}
@@ -33,6 +43,7 @@ export function Messages({ conversationId }: MessagesProps) {
           isCurrentUser={message.senderId === session?.user?.id}
         />
       ))}
+      <div ref={messagesEndRef} />
     </div>
   );
 }
